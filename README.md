@@ -12,6 +12,18 @@
 
 </div>
 
+<p align="center">
+  <img src="screenshots/dashboard.png" alt="J.A.R.V.I.S. Command HUD" width="100%">
+</p>
+
+---
+
+## 📸 Interface Gallery
+
+| 🔐 Neural Initialization (Login) | ⚡ Establishing Uplink (Loading) |
+|---|---|
+| <img src="screenshots/login_screen.png" width="100%"> | <img src="screenshots/loading_screen.png" width="100%"> |
+
 ---
 
 ## ✨ Features
@@ -63,8 +75,8 @@ jarvis/
 
 **1. Clone the repository**
 ```bash
-git clone https://github.com/your-username/jarvis.git
-cd jarvis
+git clone https://github.com/tejeshk05/Jarvis.git
+cd Jarvis
 ```
 
 **2. Set up config**
