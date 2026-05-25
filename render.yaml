@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: jarvis-system
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python server.py
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.5
+      - key: MONGO_URI
+        placeholder: "Optional: Your MongoDB Atlas Connection URI"
+      - key: GROQ_API_KEY
+        placeholder: "Optional: Default Groq API Key"

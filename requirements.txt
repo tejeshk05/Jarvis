@@ -3,7 +3,6 @@ uvicorn[standard]
 websockets
 openai
 psutil
-pyautogui
 edge-tts
 motor
 PyJWT

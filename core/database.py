@@ -7,7 +7,7 @@ from typing import Optional
 
 CONFIG_FILE = os.path.join(os.path.dirname(os.path.dirname(__file__)), "jarvis_config.json")
 SQLITE_DB_FILE = os.path.join(os.path.dirname(os.path.dirname(__file__)), "jarvis.db")
-MONGO_URI = "mongodb://localhost:27017"
+MONGO_URI = os.environ.get("MONGO_URI", os.environ.get("MONGODB_URI", "mongodb://localhost:27017"))
 
 # Global state for DB
 mongo_client = None
@@ -24,10 +24,13 @@ def load_config() -> dict:
     return {}
 
 def save_config(data: dict):
-    config = load_config()
-    config.update(data)
-    with open(CONFIG_FILE, "w") as f:
-        json.dump(config, f)
+    try:
+        config = load_config()
+        config.update(data)
+        with open(CONFIG_FILE, "w") as f:
+            json.dump(config, f)
+    except Exception as e:
+        print(f"⚠️ Warning: Could not save config file: {e}")
 
 # ══════════════════════════════
 #  SQLITE BACKWARD COMPATIBILITY WRAPPERS
