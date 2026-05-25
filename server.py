@@ -252,12 +252,14 @@ async def generate_initial_greeting(websocket: WebSocket, user_name: str, user_c
         prompt = ("The user has just reconnected to the system. Formulate a 1 to 2 sentence greeting "
                   "that explicitly starts with exactly: 'Welcome back, Sir.' "
                   "Infuse a dry, witty British sense of humor regarding whatever you were last discussing "
-                  "in the retrieved memory to show continuation.")
+                  "in the retrieved memory to show continuation. "
+                  "DO NOT include any JSON actions, tools, or bracketed commands. Output ONLY clean conversation.")
     else:
         prompt = ("This is a brand new user. Formulate a 2 to 3 sentence greeting starting with 'Greetings, Sir.' "
                   "Introduce yourself as J.A.R.V.I.S., the highly intelligent neural system created by D. Tejesh Kumar. "
                   "Briefly mention that you can analyze systems, execute terminal commands, and search the live web. "
-                  "Keep a professional but subtly witty British tone.")
+                  "Keep a professional but subtly witty British tone. "
+                  "DO NOT include any JSON actions, tools, or bracketed commands. Output ONLY clean conversation.")
 
     try:
         temp_history = user_chat_history.copy()
@@ -270,6 +272,10 @@ async def generate_initial_greeting(websocket: WebSocket, user_name: str, user_c
             max_tokens=150
         )
         reply = response.choices[0].message.content.strip()
+
+        # Extract/clean any accidental JSON block outputted by the model
+        _, clean_reply = extract_json_action(reply)
+        reply = clean_reply.strip()
 
         user_chat_history.append({"role": "assistant", "content": reply})
         await save_message("assistant", reply, user_name)
