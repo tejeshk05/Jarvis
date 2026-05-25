@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>J.A.R.V.I.S — TEJESH INDUSTRIES</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+
+    <!-- BG Grid -->
+    <div id="bgGrid"><canvas id="bgCanvas"></canvas></div>
+
+    <!-- Corners -->
+    <div class="corner c-tl"></div>
+    <div class="corner c-tr"></div>
+    <div class="corner c-bl"></div>
+    <div class="corner c-br"></div>
+
+    <!-- ══ BOOT OVERLAY ══ -->
+    <div id="bootOverlay">
+        <canvas id="bootBinaryCanvas"></canvas>
+        <div class="boot-logo-block">
+            <div class="boot-logo">J.A.R.V.I.S</div>
+        </div>
+        <div class="boot-sub">JUST A RATHER VERY INTELLIGENT SYSTEM</div>
+        <div class="boot-reactor-wrap">
+            <div class="reactor" style="transform: scale(1.6);">
+                <div class="rring rring-outer"></div>
+                <div class="rring rring-ticks"></div>
+                <div class="rring rring-mid"></div>
+                <div class="rring rring-inner"></div>
+                <svg class="rring rring-binary-outermost" viewBox="0 0 120 120">
+                    <defs>
+                        <path id="bootPathOut" d="M 60, 60 m -56, 0 a 56,56 0 1,1 112,0 a 56,56 0 1,1 -112,0" />
+                    </defs>
+                    <text>
+                        <textPath href="#bootPathOut" startOffset="0" textLength="350" lengthAdjust="spacing">1001011100110010101101001011100110010101101001011100110010101110</textPath>
+                    </text>
+                </svg>
+                <svg class="rring rring-binary" viewBox="0 0 120 120">
+                    <defs>
+                        <path id="bootPathMid" d="M 60, 60 m -45, 0 a 45,45 0 1,1 90,0 a 45,45 0 1,1 -90,0" />
+                    </defs>
+                    <text>
+                        <textPath href="#bootPathMid" startOffset="0" textLength="283" lengthAdjust="spacing">01101001011001110100101101100101011010010110011101001011011001</textPath>
+                    </text>
+                </svg>
+                <svg class="rring rring-binary-blue" viewBox="0 0 120 120">
+                    <defs>
+                        <path id="bootPathIn" d="M 60, 60 m -30, 0 a 30,30 0 1,1 60,0 a 30,30 0 1,1 -60,0" />
+                    </defs>
+                    <text>
+                        <textPath href="#bootPathIn" startOffset="0" textLength="188" lengthAdjust="spacing">10110010100110101100101001101011001010011010</textPath>
+                    </text>
+                </svg>
+                <div class="rcore"></div>
+            </div>
+        </div>
+        <div class="boot-loader-container">
+            <div class="boot-loader-bar"></div>
+        </div>
+        <!-- Boot typewriter sequence -->
+        <div class="boot-seq-wrap" id="bootSeqWrap">
+            <div class="boot-seq-line" id="bootLine0"></div>
+            <div class="boot-seq-line" id="bootLine1"></div>
+            <div class="boot-seq-line welcome" id="bootLine2"></div>
+        </div>
+    </div>
+
+    <!-- ══ API DIALOG ══ -->
+    <div id="apiOverlay">
+        <div class="api-box">
+            <div class="api-logo">J.A.R.V.I.S</div>
+            <div class="api-sub">D.TEJESH KUMAR // NEURAL INITIALIZATION REQUIRED</div>
+            <div class="api-desc">
+                ✦ <span>Groq AI Cloud</span> — Lightning fast Llama 3 intelligence<br>
+                ✦ <span>System Control</span> — REAL Windows app & command execution<br>
+                ✦ <span>Live Stats</span> — Real CPU, RAM, disk from your PC<br>
+                <br>Requires a <span>FREE</span> Groq API key to activate.
+            </div>
+            <input type="text" class="api-input" id="userNameInput" placeholder="Enter Your Name (e.g., Tony Stark)" style="margin-bottom: 8px;" />
+            <input type="password" class="api-input" id="apiKeyInput"
+                placeholder="gsk_... (get free key at console.groq.com/keys)" />
+            <button class="api-btn" onclick="boot()">▶ INITIALIZE ALL SYSTEMS</button>
+            <div class="api-note">
+                Get your FREE key at <a href="https://console.groq.com/keys" target="_blank">console.groq.com/keys</a>
+                &nbsp;·&nbsp; Key is saved locally on your PC
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ LOCAL AGENT DISCONNECTED BANNER (fixed overlay — outside grid) ══ -->
+    <div id="agentBanner" class="agent-banner" style="display:none;">
+        <div class="agent-banner-icon">⚠</div>
+        <div class="agent-banner-body">
+            <div class="agent-banner-title">LOCAL PC AGENT NOT CONNECTED</div>
+            <div class="agent-banner-msg">
+                PC commands (open apps, run CMD, system control) require the local agent running on your computer.
+                <strong>Download and run <code>agent.py</code></strong> on your PC to enable full system control.
+            </div>
+            <div class="agent-banner-actions">
+                <a id="agentDownloadBtn" class="agent-dl-btn" href="/static/agent.py" download="agent.py">
+                    ⬇ DOWNLOAD AGENT.PY
+                </a>
+                <span class="agent-banner-cmd">Then run: &nbsp;<code>python agent.py</code></span>
+            </div>
+        </div>
+        <button class="agent-banner-close" onclick="dismissAgentBanner()" title="Dismiss">✕</button>
+    </div>
+
+    <!-- ══ HUD ══ -->
+    <div id="hud">
+
+        <!-- HEADER -->
+        <div class="panel" id="header">
+            <div class="logo-block">
+                <div class="logo">J.A.R.V.I.S</div>
+                <div class="logo-sub">JUST A RATHER VERY INTELLIGENT SYSTEM // CREATED BY D.TEJESH KUMAR // v8.1.0</div>
+            </div>
+            <div class="header-center">
+                <div class="status-bar">
+                    <div class="status-item">
+                        <div class="dot dot-green"></div>NEURAL ONLINE
+                    </div>
+                    <div class="status-item">
+                        <div class="dot dot-arc"></div>SEARCH READY
+                    </div>
+                    <div class="status-item">
+                        <div class="dot dot-warn"></div>SYS AGENT
+                    </div>
+                </div>
+                <div class="mode-badges">
+                    <div class="badge badge-active">● AI CORE</div>
+                    <div class="badge badge-search">◈ WEB SEARCH</div>
+                    <div class="badge badge-sys">⌘ SYS CONTROL</div>
+                </div>
+            </div>
+            <div class="header-stats">
+                <div class="hstat">
+                    <div class="hstat-val" id="hUptime">00:00:00</div>
+                    <div class="hstat-lbl">UPTIME</div>
+                </div>
+                <div class="hstat">
+                    <div class="hstat-val" id="hQueries" style="color:var(--gold)">0</div>
+                    <div class="hstat-lbl">QUERIES</div>
+                </div>
+                <div class="hstat">
+                    <div class="hstat-val" id="hSearches" style="color:var(--green)">0</div>
+                    <div class="hstat-lbl">SEARCHES</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- LEFT -->
+        <div id="left">
+
+            <!-- Arc Reactor -->
+            <div class="panel" id="reactorPanel">
+                <div class="panel-title">ARC REACTOR</div>
+                <div class="panel-body">
+                    <div class="reactor">
+                        <div class="rring rring-outer"></div>
+                        <div class="rring rring-ticks"></div>
+                        <div class="rring rring-mid"></div>
+                        <div class="rring rring-inner"></div>
+                        <svg class="rring rring-binary-outermost" viewBox="0 0 120 120">
+                            <defs>
+                                <path id="arcPathOutermost" d="M 60, 60 m -56, 0 a 56,56 0 1,1 112,0 a 56,56 0 1,1 -112,0" />
+                            </defs>
+                            <text>
+                                <textPath href="#arcPathOutermost" startOffset="0" textLength="350" lengthAdjust="spacing">1001011100110010101101001011100110010101101001011100110010101110</textPath>
+                            </text>
+                        </svg>
+                        <svg class="rring rring-binary" viewBox="0 0 120 120">
+                            <defs>
+                                <path id="arcPath" d="M 60, 60 m -45, 0 a 45,45 0 1,1 90,0 a 45,45 0 1,1 -90,0" />
+                            </defs>
+                            <text>
+                                <textPath href="#arcPath" startOffset="0" textLength="283" lengthAdjust="spacing">01101001011001110100101101100101011010010110011101001011011001</textPath>
+                            </text>
+                        </svg>
+                        <svg class="rring rring-binary-blue" viewBox="0 0 120 120">
+                            <defs>
+                                <path id="arcPathBlue" d="M 60, 60 m -30, 0 a 30,30 0 1,1 60,0 a 30,30 0 1,1 -60,0" />
+                            </defs>
+                            <text>
+                                <textPath href="#arcPathBlue" startOffset="0" textLength="188" lengthAdjust="spacing">10110010100110101100101001101011001010011010</textPath>
+                            </text>
+                        </svg>
+                        <div class="rcore"></div>
+                    </div>
+                    <div class="reactor-label">POWER OUTPUT</div>
+                    <div class="reactor-pct">3.GW</div>
+                </div>
+            </div>
+
+            <!-- Weather & Location Data -->
+            <div class="panel" id="weatherPanel" style="flex-shrink:0;">
+                <div class="panel-title">GLOBAL WEATHER & LOCATION</div>
+                <div class="panel-body">
+                    <div class="weather-city" id="locCity">ACQUIRING SIGNAL...</div>
+                    <div class="weather-main">
+                        <div class="weather-icon" id="wIcon">[ ACQ ]</div>
+                        <div class="weather-temp" id="wTemp">--<span style="font-size:0.55em; vertical-align:super;">°C</span></div>
+                    </div>
+                    <div class="weather-details">
+                        <div class="weather-detail-item">
+                            <span>WIND</span>
+                            <span class="weather-detail-val" id="wWind">-- km/h</span>
+                        </div>
+                        <div class="weather-detail-item">
+                            <span>HUMIDITY</span>
+                            <span class="weather-detail-val" id="wHumid">--%</span>
+                        </div>
+                        <div class="weather-detail-item">
+                            <span>COND</span>
+                            <span class="weather-detail-val" id="wCond">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vitals -->
+            <div class="panel">
+                <div class="panel-title">SYSTEM VITALS</div>
+                <div class="panel-body">
+                    <div class="vital">
+                        <div class="vital-row"><span>CPU LOAD</span><span class="vital-val" id="vCPU">--</span></div>
+                        <div class="bar-track">
+                            <div class="bar-fill bf-arc" id="bCPU" style="width:0%"></div>
+                        </div>
+                    </div>
+                    <div class="vital">
+                        <div class="vital-row"><span>MEMORY</span><span class="vital-val" id="vMEM">--</span></div>
+                        <div class="bar-track">
+                            <div class="bar-fill bf-gold" id="bMEM" style="width:0%"></div>
+                        </div>
+                    </div>
+                    <div class="vital">
+                        <div class="vital-row"><span>NETWORK</span><span class="vital-val" id="vNET">--</span></div>
+                        <div class="bar-track">
+                            <div class="bar-fill bf-green" id="bNET" style="width:0%"></div>
+                        </div>
+                    </div>
+                    <div class="vital">
+                        <div class="vital-row"><span>GPU TEMP</span><span class="vital-val" id="vTMP">--</span></div>
+                        <div class="bar-track">
+                            <div class="bar-fill bf-warn" id="bTMP" style="width:0%"></div>
+                        </div>
+                    </div>
+                    <div class="vital">
+                        <div class="vital-row"><span>DISK I/O</span><span class="vital-val" id="vDSK">--</span></div>
+                        <div class="bar-track">
+                            <div class="bar-fill bf-arc" id="bDSK" style="width:0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Log -->
+            <div class="panel" id="logPanel" style="flex:1;min-height:0;">
+                <div class="panel-title">SYSTEM LOG</div>
+                <div class="panel-body" id="sysLog"></div>
+            </div>
+
+        </div>
+
+        <!-- CENTER -->
+        <div id="center">
+
+            <!-- Waveform -->
+            <div class="panel" id="wavePanel">
+                <div class="panel-body">
+                    <span class="wave-label">VOICE ANALYSIS</span>
+                    <canvas id="waveCanvas"></canvas>
+                    <span class="wave-mode" id="waveMode">STANDBY</span>
+                </div>
+            </div>
+
+            <!-- Chat -->
+            <div class="panel" id="chatPanel">
+                <div class="panel-title">NEURAL INTERFACE — DIALOGUE</div>
+                <div class="panel-body" id="chatBox">
+                    <div class="msg">
+                        <div class="avatar">J</div>
+                        <div class="bubble">
+                            <div class="bubble-meta">JARVIS // BOOT SEQUENCE COMPLETE</div>
+                            Good day, Sir. All systems are nominal. I am now operating with full capabilities —
+                            conversational AI, live web search, and system command execution. How may I assist you?
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input -->
+            <div id="inputBar">
+                <div class="input-prefix">▶</div>
+                <input type="text" id="cmdInput"
+                    placeholder="Issue a command, ask anything, or say 'search for...' / 'open Chrome'..." />
+                <button id="micBtn" onclick="toggleMic()" title="Voice Command">🎙️</button>
+                <button id="execBtn" onclick="sendMsg()">EXECUTE</button>
+            </div>
+
+        </div>
+
+        <!-- RIGHT -->
+        <div id="right">
+
+            <!-- Quick Commands -->
+            <div class="panel">
+                <div class="panel-title">QUICK COMMANDS</div>
+                <div class="panel-body">
+                    <div class="qgrid">
+                        <div class="qtile"
+                            onclick="qCmd('Give me a full briefing: current time, date, and what I should focus on today')">
+                            <div class="qtile-icon">📋</div>
+                            <div class="qtile-lbl">BRIEFING</div>
+                        </div>
+                        <div class="qtile" onclick="qCmd('Search the web for latest AI news today')">
+                            <div class="qtile-icon">🌐</div>
+                            <div class="qtile-lbl">WEB SEARCH</div>
+                        </div>
+                        <div class="qtile"
+                            onclick="qCmd('Run system diagnostics and report CPU, memory, disk, and network status')">
+                            <div class="qtile-icon">⚡</div>
+                            <div class="qtile-lbl">DIAGNOSTICS</div>
+                        </div>
+                        <div class="qtile" onclick="qCmd('Open Chrome browser and navigate to google.com')">
+                            <div class="qtile-icon">💻</div>
+                            <div class="qtile-lbl">OPEN APP</div>
+                        </div>
+                        <div class="qtile" onclick="qCmd('Read the global weather and location telemetry currently displayed on my HUD and give me a brief summary.')">
+                            <div class="qtile-icon">⛅</div>
+                            <div class="qtile-lbl">WEATHER</div>
+                        </div>
+                        <div class="qtile" onclick="qCmd('List all running processes and show top resource consumers')">
+                            <div class="qtile-icon">⚙️</div>
+                            <div class="qtile-lbl">PROCESSES</div>
+                        </div>
+                        <div class="qtile" onclick="qCmd('Scan for security threats and vulnerabilities on my system')">
+                            <div class="qtile-icon">🛡️</div>
+                            <div class="qtile-lbl">THREAT SCAN</div>
+                        </div>
+                        <div class="qtile"
+                            onclick="qCmd('What are all the system commands and capabilities you can execute?')">
+                            <div class="qtile-icon">🤖</div>
+                            <div class="qtile-lbl">CAPABILITIES</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Owner Profile -->
+            <div class="panel">
+                <div class="panel-title">SYSTEM ARCHITECT // D.TEJESH KUMAR</div>
+                <div class="panel-body" style="padding: 0;">
+                    <div class="gh-profile">
+                        <div class="gh-avatar" style="font-size: 30px; color: var(--warn); display: flex; align-items: center; justify-content: center; background: rgba(255, 171, 0, 0.1); border-color: rgba(255, 171, 0, 0.3); text-shadow: 0 0 10px var(--warn); font-family: 'Share Tech Mono', monospace;">?</div>
+                        <div class="gh-info">
+                            <div class="gh-name" style="color: var(--arc);">D.TEJESH KUMAR</div>
+                            <div class="gh-bio" style="color: var(--textdim); margin-top: 2px; margin-bottom: 2px;">CLEARANCE LEVEL: OMNI</div>
+                            <div class="gh-stats">
+                                <a href="https://github.com/tejeshk05" target="_blank" class="gh-btn">▶ VIEW GITHUB PROFILE</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <!-- Threat Matrix -->
+            <div class="panel">
+                <div class="panel-title">THREAT MATRIX</div>
+                <div class="panel-body">
+                    <div class="threat-row">
+                        <div class="tlevel tl-ok"></div><span>FIREWALL</span><span class="tstatus tstatus-ok">ACTIVE</span>
+                    </div>
+                    <div class="threat-row">
+                        <div class="tlevel tl-ok"></div><span>INTRUSION DETECT</span><span class="tstatus tstatus-ok">CLEAR</span>
+                    </div>
+                    <div class="threat-row">
+                        <div class="tlevel tl-warn"></div><span>NETWORK ANOMALY</span><span class="tstatus tstatus-warn">WATCH</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Network -->
+            <div class="panel">
+                <div class="panel-title">NETWORK TOPOLOGY</div>
+                <div class="panel-body" style="padding:6px 10px;">
+                    <canvas id="netCanvas" height="60"></canvas>
+                </div>
+            </div>
+
+            <!-- Environment -->
+            <div class="panel" style="flex:1;min-height:0;">
+                <div class="panel-title">ENVIRONMENT</div>
+                <div class="panel-body" style="height: calc(100% - 28px); overflow-y: auto;">
+                    <div class="env-row"><span class="env-key">OS</span><span class="env-val" id="eOS">--</span></div>
+                    <div class="env-row"><span class="env-key">BROWSER</span><span class="env-val" id="eBR">--</span></div>
+                    <div class="env-row"><span class="env-key">CPU CORES</span><span class="env-val" id="eCOR">--</span></div>
+                    <div class="env-row"><span class="env-key">DISPLAY</span><span class="env-val" id="eSCR">--</span></div>
+                    <div class="env-row"><span class="env-key">LANGUAGE</span><span class="env-val" id="eLNG">--</span></div>
+                    <div class="env-row"><span class="env-key">TIMEZONE</span><span class="env-val" id="eTZ">--</span></div>
+                    <div class="env-row"><span class="env-key">BATTERY</span><span class="env-val" id="eBAT">--</span></div>
+                    <div class="env-row" style="border-bottom:none;"><span class="env-key">PROCESSES</span><span class="env-val" id="ePROC">--</span></div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- FOOTER -->
+        <div class="panel" id="footer">
+            <span>DEVELOPED BY D.TEJESH KUMAR © 2026 — STARK INDUSTRIES INC.</span>
+            <span class="footer-center" id="footerClock">--:--:-- UTC</span>
+            <span>
+                <a href="#"
+                    style="color:var(--text); text-decoration:none; margin-right: 15px; font-size: 0.85em; cursor: pointer; border: 1px solid var(--text); padding: 2px 6px; border-radius: 3px;"
+                    onclick="clearApiKey()">[ CHANGE API KEY ]</a>
+                NODE: MALIBU-PRIMARY // ARC REACTOR: ONLINE
+            </span>
+        </div>
+
+    </div>
+
+    <script src="/static/script.js?v=11"></script>
+</body>
+
+</html>

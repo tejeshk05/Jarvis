@@ -1,0 +1,34 @@
+# ─── Python ───────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+
+# ─── Virtual environments ─────────────────
+.venv/
+venv/
+env/
+
+# ─── Secrets & credentials ────────────────
+apikey.txt
+*.key
+*.pem
+*.env
+.env
+
+# ─── J.A.R.V.I.S. config (contains Groq key) ──
+jarvis_config.json
+agent_config.json
+
+# ─── Logs & temp ─────────────────────────
+*.log
+agent_log.txt
+server_log.txt
+*.tmp
+*.bak
+server_backup.py
+extractor.py

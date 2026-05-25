@@ -1,0 +1,6 @@
+{
+  "groq_key": "",
+  "user_name": "",
+  "mongo_uri": "mongodb://localhost:27017",
+  "jwt_secret": ""
+}
