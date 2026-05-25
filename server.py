@@ -44,7 +44,7 @@ from core.intelligence import (
 import core.intelligence as intelligence
 from core.auth import create_token, verify_token
 from fastapi import Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 
 # ══════════════════════════════
 #  APP SETUP
@@ -76,6 +76,10 @@ async def force_utf8_html(request, call_next):
 
 # Serve static files (the HUD)
 app.mount("/static", StaticFiles(directory=os.path.dirname(__file__), html=True), name="static")
+
+@app.get("/")
+def read_root():
+    return RedirectResponse(url="/static/index.html")
 
 # ── Weather API ──
 @app.get("/api/weather")
