@@ -7,6 +7,7 @@
         let searchCount = 0;
         let startTime = Date.now();
         let sessionStartTime = null;   // set on init_ok = JARVIS session start
+        let isAgentConnected = false;  // set on agent check or stats packet
         let isBusy = false;
         let webSearchEnabled = true;
         let history = [];
@@ -128,6 +129,19 @@
 
         function updateVitals() {
             const r = (a, b) => Math.floor(Math.random() * (b - a) + a);
+            
+            if (!isAgentConnected) {
+                // Clear vitals to '-' when disconnected
+                setVital('vCPU', '-', 'bCPU', 0);
+                setVital('vMEM', '-', 'bMEM', 0);
+                setVital('vNET', '-', 'bNET', 0);
+                setVital('vDSK', '-', 'bDSK', 0);
+                setVital('vTMP', '-', 'bTMP', 0);
+                setText('eBAT', '-');
+                setText('ePROC', '-');
+                return;
+            }
+            
             const tmp = r(28, 68);
             setText('vTMP', tmp + '°C'); const bt = document.getElementById('bTMP'); if (bt) bt.style.width = tmp + '%';
             
@@ -1145,16 +1159,26 @@
                     showProactiveAlert(data.alert_type, data.text);
                     initAudioStream(); // Audio chunks incoming as binary frames
                 } else if (data.type === 'stats') {
-                    const s = data.data;
-                    setVital('vCPU', s.cpu, 'bCPU', parseFloat(s.cpu));
-                    setVital('vMEM', s.ram.split(' ')[0], 'bMEM', parseFloat(s.ram));
-                    if (s.net_kbs !== undefined) setVital('vNET', s.net_kbs, 'bNET', parseFloat(s.net_pct));
-                    if (s.disk_mbs !== undefined) setVital('vDSK', s.disk_mbs, 'bDSK', parseFloat(s.disk_pct));
-                    if (!navigator.getBattery || s.battery !== "N/A") {
-                        setText('eBAT', s.battery);
+                    if (data.connected === false) {
+                        isAgentConnected = false;
+                        updateVitals();
+                    } else {
+                        isAgentConnected = true;
+                        const s = data.data;
+                        setVital('vCPU', s.cpu, 'bCPU', parseFloat(s.cpu));
+                        setVital('vMEM', s.ram.split(' ')[0], 'bMEM', parseFloat(s.ram));
+                        if (s.net_kbs !== undefined) setVital('vNET', s.net_kbs, 'bNET', parseFloat(s.net_pct));
+                        if (s.disk_mbs !== undefined) setVital('vDSK', s.disk_mbs, 'bDSK', parseFloat(s.disk_pct));
+                        if (!navigator.getBattery || s.battery !== "N/A") {
+                            setText('eBAT', s.battery);
+                        }
+                        setText('ePROC', s.processes);
+
+                        // Fluctuating GPU/system temp based on CPU load
+                        const cpuVal = parseFloat(s.cpu) || 10;
+                        const fakeTemp = Math.round(30 + (cpuVal * 0.35) + Math.random() * 4);
+                        setVital('vTMP', fakeTemp + '°C', 'bTMP', fakeTemp);
                     }
-                    setText('ePROC', s.processes);
-                    // NOTE: hUptime is driven by client-side tickClock(), not s.uptime (PC boot time)
                 } else if (data.type === 'error') {
                     hideTyping();
                     appendMsg('ai', 'Error: ' + data.message, 'err');
@@ -1222,14 +1246,16 @@
                 const data = await res.json();
                 const connected = data.connected === true;
 
-                // Update the SYS AGENT dot in the header
-                const agentDot = document.querySelector('.dot-warn');
+                // Update the SYS AGENT dot in the header using stable ID selection
+                const agentDot = document.getElementById('agentDot');
                 if (agentDot) {
                     agentDot.className = connected
                         ? 'dot dot-green'
                         : 'dot dot-warn';
                 }
 
+                isAgentConnected = connected;
+                updateVitals();
                 showAgentBanner(!connected);
             } catch (e) {
                 // Silently ignore network errors during polling

@@ -409,7 +409,6 @@ async def websocket_endpoint(websocket: WebSocket):
 
                     user_chat_history.append({"role": "assistant", "content": reply})
                     await save_message("assistant", reply, user_name)
-
                     parsed_action, clean_text = extract_json_action(reply)
                     action_result = None
 
@@ -418,12 +417,23 @@ async def websocket_endpoint(websocket: WebSocket):
                         params = parsed_action.get("params", {})
                         message_str = parsed_action.get("message", "")
 
-                        if action == "open_application":
-                            action_result = {"success": True, "message": f"Opening {params.get('app', '')}."}
-                        else:
-                            action_result = await run_system_action(user_name, action, params)
+                        # PC-specific actions
+                        pc_actions = ["open_application", "run_command", "list_directory", "take_screenshot", "get_system_stats"]
+                        agent_ws = connected_agents.get(user_name)
 
-                        reply = clean_text if clean_text else (message_str if message_str else "Executing command, Sir.")
+                        if action in pc_actions and not agent_ws and os.environ.get("PORT"):
+                            action_result = {
+                                "success": False,
+                                "error": "PC Agent Offline. To execute commands on your PC, download and run agent.py."
+                            }
+                            reply = "I cannot perform that action, Sir, because your local PC agent is not connected. Please download and run the agent script on your computer first."
+                        else:
+                            if action == "open_application":
+                                action_result = {"success": True, "message": f"Opening {params.get('app', '')}."}
+                            else:
+                                action_result = await run_system_action(user_name, action, params)
+
+                            reply = clean_text if clean_text else (message_str if message_str else "Executing command, Sir.")
 
                         if action_result:
                             if "html_override" in action_result:
@@ -466,7 +476,7 @@ async def websocket_endpoint(websocket: WebSocket):
                             "audio_streaming": False
                         }))
 
-                    if parsed_action and parsed_action.get("action") == "open_application":
+                    if parsed_action and parsed_action.get("action") == "open_application" and (action_result and action_result.get("success") is not False):
                         app_name = parsed_action.get("params", {}).get("app", "")
                         delay = min(max(len(reply) * 0.07 if is_voice else 1.0, 1.0), 5.0)
                         async def delayed_open(a, d, u):
@@ -563,20 +573,38 @@ async def stats_broadcast_loop():
     while True:
         await asyncio.sleep(2)
         if connected_clients:
-            try:
-                s = get_system_stats()
-                payload = json.dumps({"type": "stats", "data": s})
-                dead = set()
-                for ws in connected_clients:
-                    try:
-                        await ws.send_text(payload)
-                    except Exception:
-                        dead.add(ws)
+            dead = set()
+            for ws in connected_clients:
+                try:
+                    state = websocket_states.get(ws)
+                    if not state:
+                        continue
+                    user_name = state.get("user_name", "Sir")
+                    agent_ws = connected_agents.get(user_name)
+
+                    if agent_ws:
+                        try:
+                            # Fetch stats from remote agent
+                            stats = await execute_remote_action(agent_ws, "get_system_stats", {})
+                            payload = json.dumps({"type": "stats", "connected": True, "data": stats})
+                        except Exception as e:
+                            print(f"Failed to fetch stats from agent for {user_name}: {e}")
+                            payload = json.dumps({"type": "stats", "connected": False})
+                    else:
+                        # If running locally (not on Render/cloud), we can fallback to server stats
+                        if not os.environ.get("PORT"):
+                            s = get_system_stats()
+                            payload = json.dumps({"type": "stats", "connected": True, "data": s})
+                        else:
+                            payload = json.dumps({"type": "stats", "connected": False})
+
+                    await ws.send_text(payload)
+                except Exception:
+                    dead.add(ws)
+            if dead:
                 connected_clients.difference_update(dead)
                 for d in dead:
                     websocket_states.pop(d, None)
-            except Exception as e:
-                print(f"Stats broadcast error: {e}")
 
 
 # ══════════════════════════════
