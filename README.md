@@ -100,34 +100,6 @@ This automatically installs dependencies, frees port 8000, and opens your browse
 
 ---
 
-## 🌐 Cloud Deployment (Free on Render)
-
-You can deploy the J.A.R.V.I.S. backend server to **Render** for free so your dashboard is accessible from any browser.
-
-### 1. Deploy Backend Server
-1. Go to [Render](https://render.com/) and sign in.
-2. Click **New +** and select **Blueprint**.
-3. Connect your GitHub repository: `https://github.com/tejeshk05/Jarvis`.
-4. Render will read the `render.yaml` file automatically to configure the service.
-5. Click **Apply** to deploy!
-6. *(Optional)* To persist chat logs and profiles across server restarts:
-   - Create a free cluster on [MongoDB Atlas](https://www.mongodb.com/products/platform/atlas-database).
-   - In Render under **Environment Variables**, add `MONGO_URI` with your connection string.
-   - If no MongoDB is connected, the server automatically falls back to local SQLite.
-
-### 2. Connect Your Local PC Agent
-To monitor your PC stats, open applications, and execute command console actions:
-1. Download or copy `agent.py` and the `core/` folder to the target PC.
-2. Open a terminal in that folder and run:
-   ```bash
-   python agent.py
-   ```
-3. When prompted, enter your deployed Render URL (e.g. `https://your-app-name.onrender.com`).
-4. Enter your profile username and Groq API Key to authenticate.
-5. The agent will connect over WebSocket and keep the neural link active!
-
----
-
 ## 🔐 Security Model
 
 - Your **Groq API key** is stored locally in `jarvis_config.json` (gitignored) — never hardcoded
