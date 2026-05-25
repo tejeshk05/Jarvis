@@ -1,9 +1,10 @@
 <div align="center">
 
-# J.A.R.V.I.S.
-### Just A Rather Very Intelligent System
+# J.A.R.V.I.S.: Voice-Enabled AI Assistant & System Monitor
 
 **A personal AI assistant with a cinematic HUD, real-time voice, and proactive system monitoring.**
+
+🚀 **[Live Demo](https://jarvis-rxj0.onrender.com)**
 
 ![Python](https://img.shields.io/badge/Python-3.12-blue?style=flat-square&logo=python)
 ![FastAPI](https://img.shields.io/badge/FastAPI-WebSocket-green?style=flat-square&logo=fastapi)
