@@ -81,9 +81,8 @@ app.mount("/static", StaticFiles(directory=os.path.dirname(__file__), html=True)
 def read_root():
     return RedirectResponse(url="/static/index.html")
 
-# ── Weather API ──
 @app.get("/api/weather")
-def backend_weather(location: str = None):
+def backend_weather(request: Request, location: str = None):
     import urllib.request, urllib.parse, json
     try:
         config = load_config()
@@ -106,7 +105,19 @@ def backend_weather(location: str = None):
                 lat = "0"
                 lon = "0"
         else:
-            req = urllib.request.Request('https://freeipapi.com/api/json', headers={'User-Agent': 'Mozilla/5.0'})
+            # Parse client's real public IP forwarded by Render proxy
+            client_ip = request.headers.get("x-forwarded-for")
+            if client_ip:
+                client_ip = client_ip.split(",")[0].strip()
+            else:
+                client_ip = request.client.host
+
+            # Query geolocation with client IP if it is a public IP
+            if client_ip and not client_ip.startswith("127.") and not client_ip.startswith("10.") and not client_ip.startswith("192.168."):
+                req = urllib.request.Request(f'https://freeipapi.com/api/json?ip={client_ip}', headers={'User-Agent': 'Mozilla/5.0'})
+            else:
+                req = urllib.request.Request('https://freeipapi.com/api/json', headers={'User-Agent': 'Mozilla/5.0'})
+
             loc_data = json.loads(urllib.request.urlopen(req, timeout=5).read().decode())
             lat = loc_data.get('latitude')
             lon = loc_data.get('longitude')
